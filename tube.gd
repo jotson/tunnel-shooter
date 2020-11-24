@@ -27,7 +27,7 @@ var throttle = 0.25
 var angular_offset = PI/2
 var angular_offset_v = 0.0
 var angular_offset_vmax = 2 * PI
-var angular_offset_a = 25
+var angular_offset_a = 15
 var angular_offset_damp = 0.1
 
 var camera_velocity : SpatialVelocityTracker
@@ -140,10 +140,10 @@ func _physics_process(delta):
 	angular_offset += angular_offset_v * delta
 		
 	# Lerp back to bottom
-	if angular_offset < -PI + PI/2:
-		angular_offset = PI + PI/2
-	elif angular_offset > PI + PI/2:
-		angular_offset = -PI + PI/2
+#	if angular_offset < -PI + PI/2:
+#		angular_offset = PI + PI/2
+#	elif angular_offset > PI + PI/2:
+#		angular_offset = -PI + PI/2
 #	if not input:
 #		angular_offset = lerp(angular_offset, PI/2, 0.03)
 		
@@ -288,6 +288,9 @@ func create_ring():
 	if ring % (RING_COUNT / 2) == 0:
 		var c1 = rand_range(0,1.0)
 		rand_color = Color(c1, rand_range(0,1.0), 1.0-c1)
+		
+	if ring < RING_COUNT:
+		rand_color = Color(0.3, 0.0, 0.04)
 	
 	if ring % (RING_COUNT / MAX_LIGHTS) == 0:
 		if lights.size() < MAX_LIGHTS:

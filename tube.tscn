@@ -15,30 +15,30 @@ roughness = 0.0
 
 [sub_resource type="ArrayMesh" id=2]
 
-[sub_resource type="PhysicsMaterial" id=7]
+[sub_resource type="PhysicsMaterial" id=3]
 friction = 0.0
 bounce = 1.0
 absorbent = true
 
-[sub_resource type="BoxShape" id=6]
+[sub_resource type="BoxShape" id=4]
 extents = Vector3( 50, 50, 5 )
 
-[sub_resource type="SphereMesh" id=3]
+[sub_resource type="SphereMesh" id=5]
 radius = 40.0
 height = 80.0
 
-[sub_resource type="PhysicsMaterial" id=8]
+[sub_resource type="PhysicsMaterial" id=6]
 friction = 0.0
 bounce = 1.0
 absorbent = true
 
-[sub_resource type="Curve3D" id=4]
+[sub_resource type="Curve3D" id=7]
 _data = {
 "points": PoolVector3Array(  ),
 "tilts": PoolRealArray(  )
 }
 
-[sub_resource type="Environment" id=5]
+[sub_resource type="Environment" id=8]
 background_mode = 1
 ambient_light_color = Color( 1, 0.996078, 0.996078, 1 )
 ambient_light_energy = 0.2
@@ -59,10 +59,10 @@ far = 1000.0
 [node name="RigidBody" type="RigidBody" parent="Camera"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -15 )
 mode = 3
-physics_material_override = SubResource( 7 )
+physics_material_override = SubResource( 3 )
 
 [node name="back" type="CollisionShape" parent="Camera/RigidBody"]
-shape = SubResource( 6 )
+shape = SubResource( 4 )
 
 [node name="BallCamera" type="Camera" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 21.6405 )
@@ -83,16 +83,16 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0 )
 [node name="MeshInstance" type="MeshInstance" parent="target"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -56.2501 )
 layers = 2
-mesh = SubResource( 3 )
+mesh = SubResource( 5 )
 material/0 = null
 
 [node name="TunnelCollision" type="StaticBody" parent="."]
-physics_material_override = SubResource( 8 )
+physics_material_override = SubResource( 6 )
 
 [node name="CollisionShape" type="CollisionShape" parent="TunnelCollision"]
 
 [node name="Path" type="Path" parent="."]
-curve = SubResource( 4 )
+curve = SubResource( 7 )
 
 [node name="ui" type="CanvasLayer" parent="."]
 
@@ -165,7 +165,7 @@ render_target_update_mode = 3
 [node name="WorldCam" type="Camera" parent="ui/container/ViewportContainer/Viewport"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 29.6727 )
 cull_mask = 1048573
-environment = SubResource( 5 )
+environment = SubResource( 8 )
 current = true
 fov = 50.0
 far = 1000.0
