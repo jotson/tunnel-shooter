@@ -49,7 +49,7 @@ onready var ui = $ui/container
 
 
 func _ready():
-	OS.vsync_enabled = false
+	OS.vsync_enabled = true
 	
 	ui.get_node("VideoPanel/VideoPlayer1").stop()
 	ui.get_node("VideoPanel/VideoPlayer2").stop()
@@ -148,11 +148,14 @@ func _physics_process(delta):
 #		angular_offset = lerp(angular_offset, PI/2, 0.03)
 		
 	if Input.is_action_just_pressed("video"):
+		$ui/videoswitchtimer.stop()
 		if ui.get_node("VideoPanel").visible:
 			ui.get_node("VideoPanel").hide()
 			ui.get_node("VideoPanel/VideoPlayer1").stop()
 			ui.get_node("VideoPanel/VideoPlayer2").stop()
 		else:
+			$ui/videoswitchtimer.start()
+			ui.get_node("VideoPanel/VideoPlayer2").show()
 			ui.get_node("VideoPanel").show()
 			ui.get_node("VideoPanel/VideoPlayer1").play()
 			ui.get_node("VideoPanel/VideoPlayer2").play()
