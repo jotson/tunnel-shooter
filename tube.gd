@@ -28,6 +28,8 @@ var camera_velocity : SpatialVelocityTracker
 
 var ball = null
 var playerball = null
+var camera_view = CAM.ZERO
+enum CAM { ZERO, ONE, TWO }
 
 var rand_color : Color = Color(1,0,0)
 
@@ -37,12 +39,14 @@ var noisez
 
 var pixels = false
 
+onready var ui = $ui/container
+
 
 func _ready():
 	OS.vsync_enabled = false
 	
-	$ui/VideoPanel/VideoPlayer1.stop()
-	$ui/VideoPanel/VideoPlayer2.stop()
+	ui.get_node("VideoPanel/VideoPlayer1").stop()
+	ui.get_node("VideoPanel/VideoPlayer2").stop()
 	
 	ring_mesh_data.resize(Mesh.ARRAY_MAX)
 	target_velocity = starting_velocity
@@ -69,6 +73,8 @@ func _ready():
 	noisez.period = 20.0
 	noisez.persistence = 0.8
 	
+	ui.get_node("View").text = "3rd person"
+	
 
 func _physics_process(delta):
 	var feet_per_meter = 3.28084
@@ -76,8 +82,12 @@ func _physics_process(delta):
 	var seconds_per_hour = 3600
 	var speed = target_velocity.length() * throttle
 	var mph = round(speed * feet_per_meter / feet_per_mile * seconds_per_hour)
-	$ui/Speed.text = "[ %d MPH ]-::-[ %d m/s ]" % [mph, round(speed)]
-	$ui/FPS.text = "[ %d FPS %s]" % [Engine.get_frames_per_second(), 'VSYNC ' if OS.vsync_enabled else '' ]
+	ui.get_node("Speed").text = "[ %d MPH ]-::-[ %d m/s ]" % [mph, round(speed)]
+	ui.get_node("FPS").text = "[ %d FPS %s%s]" % [
+		Engine.get_frames_per_second(),
+		'VSYNC ' if OS.vsync_enabled else '',
+		'MSAA ' if get_viewport().msaa != Viewport.MSAA_DISABLED else ''
+		]
 
 	var last_origin = Vector3.ZERO
 	var last_forward = Vector3.FORWARD
@@ -105,25 +115,35 @@ func _physics_process(delta):
 			throttle = 0
 	
 	if Input.is_action_just_pressed("video"):
-		if $ui/VideoPanel.visible:
-			$ui/VideoPanel.hide()
-			$ui/VideoPanel/VideoPlayer1.stop()
-			$ui/VideoPanel/VideoPlayer2.stop()
+		if ui.get_node("VideoPanel").visible:
+			ui.get_node("VideoPanel").hide()
+			ui.get_node("VideoPanel/VideoPlayer1").stop()
+			ui.get_node("VideoPanel/VideoPlayer2").stop()
 		else:
-			$ui/VideoPanel.show()
-			$ui/VideoPanel/VideoPlayer1.play()
-			$ui/VideoPanel/VideoPlayer2.play()
+			ui.get_node("VideoPanel").show()
+			ui.get_node("VideoPanel/VideoPlayer1").play()
+			ui.get_node("VideoPanel/VideoPlayer2").play()
 	
 	if Input.is_action_just_pressed("screen"):
 		toggle_pixels()
 	
 	if ball and Input.is_action_just_pressed("camera"):
-		if $Camera.current:
-			$Camera.current = false
-			$BallCamera.current = true
+		if camera_view == CAM.ZERO:
+			ui.get_node("View").text = "1st person"
+			camera_view = CAM.ONE
+		elif camera_view == CAM.ONE:
+			ui.get_node("View").text = "1st person RED"
+			camera_view = CAM.TWO
 		else:
+			ui.get_node("View").text = "3rd person"
+			camera_view = CAM.ZERO
+			
+		if camera_view == CAM.ZERO:
 			$Camera.current = true
 			$BallCamera.current = false
+		else:
+			$Camera.current = false
+			$BallCamera.current = true
 	
 	if throttle > 0:
 		var dist = last_origin.distance_to($target.translation)
@@ -132,20 +152,26 @@ func _physics_process(delta):
 		var world_look = lerp($Path.curve.get_point_position(RING_COUNT*0.8-1), $Path.curve.get_point_position(RING_COUNT*0.8), t)
 		if $Path.curve.get_point_count() < RING_COUNT*0.8:
 			world_look = $target.translation
-		$ui/ViewportContainer/Viewport/WorldCam.translation = $target.translation + Vector3(60, 60, 60)
-		$ui/ViewportContainer/Viewport/WorldCam.look_at(world_look, Vector3.UP)
+		ui.get_node("ViewportContainer/Viewport/WorldCam").translation = $target.translation + Vector3(60, 60, 60)
+		ui.get_node("ViewportContainer/Viewport/WorldCam").look_at(world_look, Vector3.UP)
 
+		if ball == null:
+			ball = Ball.instance()
+			ball.translation = Vector3(0,0,-25)
+			add_child(ball)
+			
+		if playerball == null:
+			playerball = PlayerBall.instance()
+			playerball.mode = RigidBody.MODE_KINEMATIC
+			playerball.translation = Vector3.DOWN * (RING_RADIUS - 1)
+			add_child(playerball)
+			
 		if $Path.curve.get_point_count() < RING_COUNT:
 			t = 0
 			camera_velocity.update_position($Camera.translation)
 		else:
-			if playerball == null:
-				var this_ring = ring_data[15]
-				playerball = PlayerBall.instance()
-				playerball.mode = RigidBody.MODE_KINEMATIC
-				playerball.translation = this_ring.origin + this_ring.side.rotated(this_ring.forward, PI/2) * (RING_RADIUS - 1)
-				add_child(playerball)
-			else:
+			if playerball:
+				# Nove player ball
 				var this_ring = ring_data[6]
 				var next_ring = ring_data[7]
 				var p = lerp($Path.curve.get_point_position(6), $Path.curve.get_point_position(7), t)
@@ -154,17 +180,18 @@ func _physics_process(delta):
 				var offset = PI/2
 				playerball.translation = p + side.rotated(forward, offset) * (RING_RADIUS - 1)
 
-				
-			if ball == null:
-				ball = Ball.instance()
-				ball.translation = Vector3(0,0,-15)
-				add_child(ball)
-			else:
-				if $Camera.translation.distance_to(ball.translation) < 20 and ball.linear_velocity.length() < camera_velocity.get_tracked_linear_velocity().length():
-					ball.apply_central_impulse(camera_velocity.get_tracked_linear_velocity().normalized() * 1)
-				var p = lerp($Path.curve.get_point_position(RING_COUNT/4 - 2), $Path.curve.get_point_position(RING_COUNT/4 - 1), t)
-				$BallCamera.translation = lerp($BallCamera.translation, playerball.translation, 0.7)
+				# Move 1st person camera
+				p = lerp($Path.curve.get_point_position(RING_COUNT/4 - 2), $Path.curve.get_point_position(RING_COUNT/4 - 1), t)
+				if camera_view == CAM.ONE:
+					$BallCamera.translation = lerp($BallCamera.translation, playerball.translation, 0.9)
+				if camera_view == CAM.TWO:
+					$BallCamera.translation = lerp($BallCamera.translation, ball.translation, 0.9)
 				$BallCamera.look_at(p, Vector3.UP)
+				
+#			if ball:
+#				var this_ring = ring_data[15]
+#				if ball.translation.distance_to(this_ring.origin) > (RING_RADIUS-1):
+#					ball.translation = (ball.translation - this_ring.origin).normalized() * (RING_RADIUS-1)
 					
 			# NOTE Curve3D.interpolatef() does cubic interpolation (ease out)
 			var p = lerp($Path.curve.get_point_position(0), $Path.curve.get_point_position(1), t)
@@ -284,7 +311,7 @@ func create_ring():
 		aMesh.surface_remove(0)
 		ring_data.pop_front()
 	aMesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, ring_mesh_data)
-	$StaticBody/CollisionShape.shape = aMesh.create_trimesh_shape()
+	$TunnelCollision/CollisionShape.shape = aMesh.create_trimesh_shape()
 
 	ring_data.append({
 		"origin": origin + forward * RING_WIDTH,
@@ -294,11 +321,11 @@ func create_ring():
 
 
 func _on_VideoPlayer1_finished():
-	$ui/VideoPanel/VideoPlayer1.play()
+	ui.get_node("VideoPanel/VideoPlayer1").play()
 
 
 func _on_VideoPlayer2_finished():
-	$ui/VideoPanel/VideoPlayer2.play()
+	ui.get_node("VideoPanel/VideoPlayer2").play()
 
 
 func toggle_pixels():
@@ -309,10 +336,23 @@ func toggle_pixels():
 		var stretch_mode = SceneTree.STRETCH_MODE_DISABLED
 		get_tree().set_screen_stretch(stretch_mode, aspect, window_size)
 		get_viewport().msaa = Viewport.MSAA_8X
-		$ui/ViewportContainer.rect_size = Vector2(360,360)
-		$ui/ViewportContainer.rect_position = Vector2(1920-360-10, 10)
-		$ui/Speed.rect_scale = Vector2(1,1)
-		$ui/FPS.rect_scale = Vector2(1,1)
+		ui.get_node("ViewportContainer").rect_size = Vector2(360,300)
+		ui.get_node("ViewportContainer").margin_left = -360
+		ui.get_node("ViewportContainer").margin_bottom = 300
+		ui.get_node("ViewportContainer").margin_right = 0
+		ui.get_node("ViewportContainer").margin_top = 0
+		
+		ui.get_node("Speed").rect_scale = Vector2(1,1)
+		ui.get_node("Speed").margin_left = 24
+		ui.get_node("Speed").margin_top = 8
+		
+		ui.get_node("View").rect_scale = Vector2(1,1)
+		ui.get_node("View").margin_left = 24
+		ui.get_node("View").margin_top = 72
+		
+		ui.get_node("FPS").rect_scale = Vector2(1,1)
+		ui.get_node("FPS").margin_right = -24
+		ui.get_node("FPS").margin_bottom = -8
 	else:
 		pixels = true
 		var window_size = Vector2(640,360)
@@ -320,14 +360,27 @@ func toggle_pixels():
 		var stretch_mode = SceneTree.STRETCH_MODE_VIEWPORT
 		get_tree().set_screen_stretch(stretch_mode, aspect, window_size)
 		get_viewport().msaa = Viewport.MSAA_DISABLED
-		$ui/ViewportContainer.rect_size = Vector2(120,120)
-		$ui/ViewportContainer.rect_position = Vector2(640-120-10, 10)
-		$ui/Speed.rect_scale = Vector2(0.33, 0.33)
-		$ui/FPS.rect_scale = Vector2(0.33, 0.33)
+		ui.get_node("ViewportContainer").rect_size = Vector2(120,100)
+		ui.get_node("ViewportContainer").margin_left = -120
+		ui.get_node("ViewportContainer").margin_bottom = 100
+		ui.get_node("ViewportContainer").margin_right = 0
+		ui.get_node("ViewportContainer").margin_top = 0
+		
+		ui.get_node("Speed").rect_scale = Vector2(0.33, 0.33)
+		ui.get_node("Speed").margin_left = 8
+		ui.get_node("Speed").margin_top = 3
+		
+		ui.get_node("View").rect_scale = Vector2(0.33, 0.33)
+		ui.get_node("View").margin_left = 8
+		ui.get_node("View").margin_top = 24
+		
+		ui.get_node("FPS").rect_scale = Vector2(0.33, 0.33)
+		ui.get_node("FPS").margin_right = -8
+		ui.get_node("FPS").margin_bottom = -3
 
 
 func _on_videoswitchtimer_timeout():
-	if $ui/VideoPanel/VideoPlayer2.visible:
-		$ui/VideoPanel/VideoPlayer2.hide()
+	if ui.get_node("VideoPanel/VideoPlayer2").visible:
+		ui.get_node("VideoPanel/VideoPlayer2").hide()
 	else:
-		$ui/VideoPanel/VideoPlayer2.show()
+		ui.get_node("VideoPanel/VideoPlayer2").show()

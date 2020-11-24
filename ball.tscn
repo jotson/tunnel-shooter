@@ -4,7 +4,8 @@
 
 [sub_resource type="PhysicsMaterial" id=1]
 friction = 0.5
-bounce = 0.5
+bounce = 1.0
+absorbent = true
 
 [sub_resource type="SpatialMaterial" id=2]
 

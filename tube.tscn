@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://tube.gd" type="Script" id=1]
 [ext_resource path="res://environment.tres" type="Environment" id=2]
@@ -15,9 +15,22 @@ roughness = 0.0
 
 [sub_resource type="ArrayMesh" id=2]
 
+[sub_resource type="PhysicsMaterial" id=7]
+friction = 0.0
+bounce = 1.0
+absorbent = true
+
+[sub_resource type="BoxShape" id=6]
+extents = Vector3( 50, 50, 5 )
+
 [sub_resource type="SphereMesh" id=3]
 radius = 40.0
 height = 80.0
+
+[sub_resource type="PhysicsMaterial" id=8]
+friction = 0.0
+bounce = 1.0
+absorbent = true
 
 [sub_resource type="Curve3D" id=4]
 _data = {
@@ -43,8 +56,16 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.32119 )
 environment = ExtResource( 2 )
 far = 1000.0
 
+[node name="RigidBody" type="RigidBody" parent="Camera"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -15 )
+mode = 3
+physics_material_override = SubResource( 7 )
+
+[node name="back" type="CollisionShape" parent="Camera/RigidBody"]
+shape = SubResource( 6 )
+
 [node name="BallCamera" type="Camera" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.32119 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 21.6405 )
 environment = ExtResource( 2 )
 fov = 90.0
 far = 1000.0
@@ -65,16 +86,28 @@ layers = 2
 mesh = SubResource( 3 )
 material/0 = null
 
-[node name="StaticBody" type="StaticBody" parent="."]
+[node name="TunnelCollision" type="StaticBody" parent="."]
+physics_material_override = SubResource( 8 )
 
-[node name="CollisionShape" type="CollisionShape" parent="StaticBody"]
+[node name="CollisionShape" type="CollisionShape" parent="TunnelCollision"]
 
 [node name="Path" type="Path" parent="."]
 curve = SubResource( 4 )
 
 [node name="ui" type="CanvasLayer" parent="."]
 
-[node name="Speed" type="Label" parent="ui"]
+[node name="videoswitchtimer" type="Timer" parent="ui"]
+wait_time = 3.0
+autostart = true
+
+[node name="container" type="Control" parent="ui"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Speed" type="Label" parent="ui/container"]
 margin_left = 24.0
 margin_top = 8.0
 margin_right = 942.0
@@ -85,16 +118,27 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="FPS" type="Label" parent="ui"]
+[node name="View" type="Label" parent="ui/container"]
+margin_left = 24.0
+margin_top = 72.0
+margin_right = 440.0
+margin_bottom = 142.0
+theme = ExtResource( 3 )
+text = "VIEW"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="FPS" type="Label" parent="ui/container"]
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = -888.0
-margin_top = -86.0
-margin_right = -16.0
-margin_bottom = -16.0
-rect_pivot_offset = Vector2( 872.622, 68.8915 )
+margin_left = -896.0
+margin_top = -78.0
+margin_right = -24.0
+margin_bottom = -8.0
+rect_pivot_offset = Vector2( 888, 78 )
 theme = ExtResource( 3 )
 text = "FPS"
 align = 2
@@ -102,24 +146,23 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="ViewportContainer" type="ViewportContainer" parent="ui"]
+[node name="ViewportContainer" type="ViewportContainer" parent="ui/container"]
 anchor_left = 1.0
 anchor_right = 1.0
-margin_left = -376.0
-margin_top = 16.0
-margin_right = -16.0
-margin_bottom = 376.0
+margin_left = -360.0
+margin_bottom = 300.0
 stretch = true
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Viewport" type="Viewport" parent="ui/ViewportContainer"]
-size = Vector2( 360, 360 )
+[node name="Viewport" type="Viewport" parent="ui/container/ViewportContainer"]
+size = Vector2( 360, 300 )
 handle_input_locally = false
+msaa = 3
 render_target_update_mode = 3
 
-[node name="WorldCam" type="Camera" parent="ui/ViewportContainer/Viewport"]
+[node name="WorldCam" type="Camera" parent="ui/container/ViewportContainer/Viewport"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.32119 )
 cull_mask = 1048573
 environment = SubResource( 5 )
@@ -127,7 +170,7 @@ current = true
 fov = 50.0
 far = 1000.0
 
-[node name="VideoPanel" type="Panel" parent="ui"]
+[node name="VideoPanel" type="Panel" parent="ui/container"]
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -135,7 +178,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="VideoPlayer1" type="VideoPlayer" parent="ui/VideoPanel"]
+[node name="VideoPlayer1" type="VideoPlayer" parent="ui/container/VideoPanel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 stream = ExtResource( 4 )
@@ -144,15 +187,11 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="VideoPlayer2" type="VideoPlayer" parent="ui/VideoPanel"]
+[node name="VideoPlayer2" type="VideoPlayer" parent="ui/container/VideoPanel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 stream = ExtResource( 5 )
 autoplay = true
-
-[node name="videoswitchtimer" type="Timer" parent="ui"]
-wait_time = 3.0
-autostart = true
-[connection signal="finished" from="ui/VideoPanel/VideoPlayer1" to="." method="_on_VideoPlayer1_finished"]
-[connection signal="finished" from="ui/VideoPanel/VideoPlayer2" to="." method="_on_VideoPlayer2_finished"]
 [connection signal="timeout" from="ui/videoswitchtimer" to="." method="_on_videoswitchtimer_timeout"]
+[connection signal="finished" from="ui/container/VideoPanel/VideoPlayer1" to="." method="_on_VideoPlayer1_finished"]
+[connection signal="finished" from="ui/container/VideoPanel/VideoPlayer2" to="." method="_on_VideoPlayer2_finished"]
