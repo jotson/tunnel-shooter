@@ -10,10 +10,12 @@ var CURVYNESS = 3
 
 var SEED = 2
 
-var rings = []
+var ring_mesh_data = []
+var ring_data = []
 var ring = 0
 
 const Ball = preload("res://ball.tscn")
+const PlayerBall = preload("res://playerball.tscn")
 const HallwayLight = preload("res://light.tscn")
 
 var lights = []
@@ -24,11 +26,8 @@ var target_velocity : Vector3
 var throttle = 0.25
 var camera_velocity : SpatialVelocityTracker
 
-var last_origin : Vector3
-var last_forward : Vector3
-var last_tangent : Vector3
-
-var ball : RigidBody = null
+var ball = null
+var playerball = null
 
 var rand_color : Color = Color(1,0,0)
 
@@ -45,7 +44,7 @@ func _ready():
 	$ui/VideoPanel/VideoPlayer1.stop()
 	$ui/VideoPanel/VideoPlayer2.stop()
 	
-	rings.resize(Mesh.ARRAY_MAX)
+	ring_mesh_data.resize(Mesh.ARRAY_MAX)
 	target_velocity = starting_velocity
 	
 	camera_velocity = SpatialVelocityTracker.new()
@@ -79,6 +78,15 @@ func _physics_process(delta):
 	var mph = round(speed * feet_per_meter / feet_per_mile * seconds_per_hour)
 	$ui/Speed.text = "[ %d MPH ]-::-[ %d m/s ]" % [mph, round(speed)]
 	$ui/FPS.text = "[ %d FPS %s]" % [Engine.get_frames_per_second(), 'VSYNC ' if OS.vsync_enabled else '' ]
+
+	var last_origin = Vector3.ZERO
+	var last_forward = Vector3.FORWARD
+	var last_side = Vector3.RIGHT
+	if ring_data.size():	
+		var last_ring = ring_data[ring_data.size()-1]
+		last_origin = last_ring.origin
+		last_forward = last_ring.forward
+		last_side = last_ring.side
 	
 	if Input.is_action_just_pressed("vsync"):
 		if OS.vsync_enabled:
@@ -131,6 +139,22 @@ func _physics_process(delta):
 			t = 0
 			camera_velocity.update_position($Camera.translation)
 		else:
+			if playerball == null:
+				var this_ring = ring_data[15]
+				playerball = PlayerBall.instance()
+				playerball.mode = RigidBody.MODE_KINEMATIC
+				playerball.translation = this_ring.origin + this_ring.side.rotated(this_ring.forward, PI/2) * (RING_RADIUS - 1)
+				add_child(playerball)
+			else:
+				var this_ring = ring_data[6]
+				var next_ring = ring_data[7]
+				var p = lerp($Path.curve.get_point_position(6), $Path.curve.get_point_position(7), t)
+				var side = lerp(this_ring.side, next_ring.side, t)
+				var forward = lerp(this_ring.forward, next_ring.forward, t)
+				var offset = PI/2
+				playerball.translation = p + side.rotated(forward, offset) * (RING_RADIUS - 1)
+
+				
 			if ball == null:
 				ball = Ball.instance()
 				ball.translation = Vector3(0,0,-15)
@@ -139,13 +163,13 @@ func _physics_process(delta):
 				if $Camera.translation.distance_to(ball.translation) < 20 and ball.linear_velocity.length() < camera_velocity.get_tracked_linear_velocity().length():
 					ball.apply_central_impulse(camera_velocity.get_tracked_linear_velocity().normalized() * 1)
 				var p = lerp($Path.curve.get_point_position(RING_COUNT/4 - 2), $Path.curve.get_point_position(RING_COUNT/4 - 1), t)
-				$BallCamera.translation = lerp($BallCamera.translation, ball.translation, 0.7)
+				$BallCamera.translation = lerp($BallCamera.translation, playerball.translation, 0.7)
 				$BallCamera.look_at(p, Vector3.UP)
 					
 			# NOTE Curve3D.interpolatef() does cubic interpolation (ease out)
 			var p = lerp($Path.curve.get_point_position(0), $Path.curve.get_point_position(1), t)
 			$Camera.translation = p
-			p = lerp($Path.curve.get_point_position(RING_COUNT/4 - 2), $Path.curve.get_point_position(RING_COUNT/4 - 1), t)
+			p = lerp($Path.curve.get_point_position(6), $Path.curve.get_point_position(7), t)
 			$Camera.look_at(p, Vector3.UP)
 			camera_velocity.update_position($Camera.translation)
 			
@@ -167,20 +191,29 @@ func create_ring():
 	var normals = PoolVector3Array()
 	var colors = PoolColorArray()
 
+	var last_origin = null
+	var last_forward = null
+	var last_side = null
+	if ring_data.size():	
+		var last_ring = ring_data[ring_data.size()-1]
+		last_origin = last_ring.origin
+		last_forward = last_ring.forward
+		last_side = last_ring.side
+
 	var origin = $target.translation
 	if last_origin == null:
 		last_origin = origin
 	
-	if (last_origin - last_forward * RING_WIDTH).distance_to(origin) < RING_WIDTH:
-		return
-		
 	var forward : Vector3 = target_velocity.normalized()
 	if last_forward == null:
 		last_forward = forward
 		
-	var tangent : Vector3 = ($target/arm.to_global($target/arm.translation) - $target.translation).normalized()
-	if last_tangent == null:
-		last_tangent = tangent
+	var side : Vector3 = ($target/arm.to_global($target/arm.translation) - $target.translation).normalized()
+	if last_side == null:
+		last_side = side
+		
+	if (last_origin - last_forward * RING_WIDTH).distance_to(origin) < RING_WIDTH:
+		return
 		
 	$Path.curve.add_point(origin)
 	if $Path.curve.get_point_count() > RING_COUNT:
@@ -193,7 +226,7 @@ func create_ring():
 	if ring % (RING_COUNT / MAX_LIGHTS) == 0:
 		if lights.size() < MAX_LIGHTS:
 			var l = HallwayLight.instance()
-			l.translation = origin# + tangent.rotated(forward, randf() * 2 * PI) * RING_RADIUS * 0.9
+			l.translation = origin# + side.rotated(forward, randf() * 2 * PI) * RING_RADIUS * 0.9
 			add_child(l)
 			
 		if lights.size() > MAX_LIGHTS:
@@ -206,8 +239,8 @@ func create_ring():
 		if (ring + j) % 2 == 0:
 			c = rand_color
 
-		var r1 : Vector3 = last_tangent * RING_RADIUS
-		var r2 : Vector3 = tangent * RING_RADIUS + forward * RING_WIDTH
+		var r1 : Vector3 = last_side * RING_RADIUS
+		var r2 : Vector3 = side * RING_RADIUS + forward * RING_WIDTH
 		var this_vert = float(j)/float(RING_VERTICES) * 2 * PI
 		var next_vert = float(j+1)/float(RING_VERTICES) * 2 * PI
 		
@@ -241,21 +274,23 @@ func create_ring():
 
 	ring += 1
 		
-	rings[Mesh.ARRAY_VERTEX] = verts
-	rings[Mesh.ARRAY_NORMAL] = normals
-	rings[Mesh.ARRAY_COLOR] = colors
+	ring_mesh_data[Mesh.ARRAY_VERTEX] = verts
+	ring_mesh_data[Mesh.ARRAY_NORMAL] = normals
+	ring_mesh_data[Mesh.ARRAY_COLOR] = colors
 	
 	var aMesh : ArrayMesh = $MeshInstance.mesh
 	var count = aMesh.get_surface_count()
 	if count > RING_COUNT:
 		aMesh.surface_remove(0)
-	aMesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, rings)
+		ring_data.pop_front()
+	aMesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, ring_mesh_data)
 	$StaticBody/CollisionShape.shape = aMesh.create_trimesh_shape()
 
-	last_origin = origin + forward * RING_WIDTH
-	last_forward = forward
-	last_tangent = tangent
-	
+	ring_data.append({
+		"origin": origin + forward * RING_WIDTH,
+		"forward": forward,
+		"side": side
+	})
 
 
 func _on_VideoPlayer1_finished():
