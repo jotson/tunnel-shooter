@@ -24,6 +24,12 @@ var MAX_LIGHTS = 6
 var starting_velocity = Vector3(0, 0, -MAX_SPEED)
 var target_velocity : Vector3
 var throttle = 0.25
+var angular_offset = PI/2
+var angular_offset_v = 0.0
+var angular_offset_vmax = 2 * PI
+var angular_offset_a = 25
+var angular_offset_damp = 0.1
+
 var camera_velocity : SpatialVelocityTracker
 
 var ball = null
@@ -86,7 +92,7 @@ func _physics_process(delta):
 	ui.get_node("FPS").text = "[ %d FPS %s%s]" % [
 		Engine.get_frames_per_second(),
 		'VSYNC ' if OS.vsync_enabled else '',
-		'MSAA ' if get_viewport().msaa != Viewport.MSAA_DISABLED else ''
+		'8xMSAA ' if get_viewport().msaa != Viewport.MSAA_DISABLED else ''
 		]
 
 	var last_origin = Vector3.ZERO
@@ -105,15 +111,42 @@ func _physics_process(delta):
 			OS.vsync_enabled = true
 	
 	if Input.is_action_pressed("faster"):
-		throttle += 0.5 * delta
+		throttle += 0.5 * delta * Input.get_action_strength("faster")
 		if throttle >= 1:
 			throttle = 1
 
 	if Input.is_action_pressed("slower"):
-		throttle -= 0.5 * delta
+		throttle -= 0.5 * delta * Input.get_action_strength("slower")
 		if throttle <= 0:
 			throttle = 0
-	
+
+	var input = false
+	if Input.is_action_pressed("left"):
+		input = true
+		angular_offset_v += angular_offset_a * delta * Input.get_action_strength("left")
+	elif Input.is_action_pressed("right"):
+		input = true
+		angular_offset_v -= angular_offset_a * delta * Input.get_action_strength("right")
+
+	# Damp velocity when no input	
+	if not input:
+		angular_offset_v = lerp(angular_offset_v, 0, angular_offset_damp)
+		
+	# Clamp max speed
+	if abs(angular_offset_v) > angular_offset_vmax:
+		angular_offset_v = angular_offset_vmax * angular_offset_v/abs(angular_offset_v)
+		
+	# Move the player
+	angular_offset += angular_offset_v * delta
+		
+	# Lerp back to bottom
+	if angular_offset < -PI + PI/2:
+		angular_offset = PI + PI/2
+	elif angular_offset > PI + PI/2:
+		angular_offset = -PI + PI/2
+#	if not input:
+#		angular_offset = lerp(angular_offset, PI/2, 0.03)
+		
 	if Input.is_action_just_pressed("video"):
 		if ui.get_node("VideoPanel").visible:
 			ui.get_node("VideoPanel").hide()
@@ -131,9 +164,9 @@ func _physics_process(delta):
 		if camera_view == CAM.ZERO:
 			ui.get_node("View").text = "1st person"
 			camera_view = CAM.ONE
-		elif camera_view == CAM.ONE:
-			ui.get_node("View").text = "1st person RED"
-			camera_view = CAM.TWO
+#		elif camera_view == CAM.ONE:
+#			ui.get_node("View").text = "1st person RED"
+#			camera_view = CAM.TWO
 		else:
 			ui.get_node("View").text = "3rd person"
 			camera_view = CAM.ZERO
@@ -163,7 +196,7 @@ func _physics_process(delta):
 		if playerball == null:
 			playerball = PlayerBall.instance()
 			playerball.mode = RigidBody.MODE_KINEMATIC
-			playerball.translation = Vector3.DOWN * (RING_RADIUS - 1)
+			playerball.translation = Vector3.DOWN * (RING_RADIUS - 1) + Vector3.FORWARD * 15.0
 			add_child(playerball)
 			
 		if $Path.curve.get_point_count() < RING_COUNT:
@@ -177,17 +210,20 @@ func _physics_process(delta):
 				var p = lerp($Path.curve.get_point_position(6), $Path.curve.get_point_position(7), t)
 				var side = lerp(this_ring.side, next_ring.side, t)
 				var forward = lerp(this_ring.forward, next_ring.forward, t)
-				var offset = PI/2
-				playerball.translation = p + side.rotated(forward, offset) * (RING_RADIUS - 1)
+				playerball.translation = p + side.rotated(forward, angular_offset) * (RING_RADIUS - 1)
 
 				# Move 1st person camera
 				p = lerp($Path.curve.get_point_position(RING_COUNT/4 - 2), $Path.curve.get_point_position(RING_COUNT/4 - 1), t)
+				$BallCamera.look_at(p, Vector3.UP)
+				if camera_view == CAM.ZERO:
+					pass
 				if camera_view == CAM.ONE:
 					$BallCamera.translation = lerp($BallCamera.translation, playerball.translation, 0.9)
+					$BallCamera.look_at(p, -side.rotated(forward.normalized(), angular_offset))
 				if camera_view == CAM.TWO:
 					$BallCamera.translation = lerp($BallCamera.translation, ball.translation, 0.9)
-				$BallCamera.look_at(p, Vector3.UP)
-				
+					$BallCamera.look_at(p, Vector3.UP)
+					
 #			if ball:
 #				var this_ring = ring_data[15]
 #				if ball.translation.distance_to(this_ring.origin) > (RING_RADIUS-1):
