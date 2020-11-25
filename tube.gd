@@ -122,6 +122,7 @@ func _physics_process(delta):
 			Game.DEBUG = true
 			
 	$TunnelCollision/CollisionShape.visible = Game.DEBUG
+	$Camera/sweep/collision.visible = Game.DEBUG
 	
 	var input = false
 	if $Path.curve.get_point_count() >= RING_COUNT:
@@ -180,7 +181,7 @@ func _physics_process(delta):
 	if Input.is_action_pressed("addball"):
 		var this_ring = ring_data[0]
 		var o = Ball.instance()
-		o.translation = this_ring.origin + this_ring.forward * 3 + this_ring.side.rotated(this_ring.forward, OS.get_ticks_msec()/250.0) * (RING_RADIUS-1)
+		o.translation = this_ring.origin + this_ring.forward * 4 + this_ring.side.rotated(this_ring.forward, OS.get_ticks_msec()/250.0) * (RING_RADIUS-1)
 		add_child(o)
 		o.apply_central_impulse(this_ring.forward * target_velocity.length() * throttle * 2)
 
@@ -211,16 +212,19 @@ func _physics_process(delta):
 			playerball.translation = Vector3.DOWN * (RING_RADIUS - 1) + Vector3.FORWARD * 15.0
 			add_child(playerball)
 			
+		if $Path.curve.get_point_count() > 20:
+			var points = $Path.curve.get_point_count()
+			var world_look = lerp($Path.curve.get_point_position(points-20), $Path.curve.get_point_position(points-19), t)
+			var current_pos = ui.get_node("ViewportContainer/Viewport/WorldCam").translation
+			ui.get_node("ViewportContainer/Viewport/WorldCam").translation = lerp(current_pos, $target.translation + Vector3(10,10,-50), 0.5)
+			ui.get_node("ViewportContainer/Viewport/WorldCam").look_at(world_look, Vector3.UP)
+
 		if $Path.curve.get_point_count() < RING_COUNT:
 			t = 0
 			camera_velocity.update_position($Camera.translation)
+			$BallCamera.look_at(playerball.translation + Vector3.FORWARD, Vector3.UP)
+			$BallCamera.translation = lerp($BallCamera.translation, playerball.translation, 0.9)
 		else:
-			var world_look = lerp($Path.curve.get_point_position(RING_COUNT*0.8-1), $Path.curve.get_point_position(RING_COUNT*0.8), t)
-			if $Path.curve.get_point_count() < RING_COUNT*0.8:
-				world_look = $target.translation
-			ui.get_node("ViewportContainer/Viewport/WorldCam").translation = $target.translation + Vector3(60, 60, 60)
-			ui.get_node("ViewportContainer/Viewport/WorldCam").look_at(world_look, Vector3.UP)
-
 			if playerball:
 				# Nove player ball
 				var this_ring = ring_data[6]
@@ -463,3 +467,13 @@ func _on_videoswitchtimer_timeout():
 		ui.get_node("VideoPanel/VideoPlayer2").hide()
 	else:
 		ui.get_node("VideoPanel/VideoPlayer2").show()
+
+
+func _on_sweep_body_entered(body):
+	if body.is_in_group("object"):
+		body.queue_free()
+
+
+func _on_sweep_area_entered(area):
+	if area.is_in_group("object"):
+		area.queue_free()
