@@ -34,7 +34,6 @@ var angular_offset_damp = 0.1
 
 var camera_velocity : SpatialVelocityTracker
 
-var ball = null
 var playerball = null
 var camera_view = CAM.ZERO
 enum CAM { ZERO, ONE, TWO }
@@ -177,8 +176,15 @@ func _physics_process(delta):
 	
 	if Input.is_action_just_pressed("screen"):
 		toggle_pixels()
-	
-	if ball and Input.is_action_just_pressed("camera"):
+
+	if Input.is_action_pressed("addball"):
+		var this_ring = ring_data[0]
+		var o = Ball.instance()
+		o.translation = this_ring.origin + this_ring.forward * 3 + this_ring.side.rotated(this_ring.forward, OS.get_ticks_msec()/250.0) * (RING_RADIUS-1)
+		add_child(o)
+		o.apply_central_impulse(this_ring.forward * target_velocity.length() * throttle * 2)
+
+	if Input.is_action_just_pressed("camera"):
 		if camera_view == CAM.ZERO:
 			ui.get_node("View").text = "1st person"
 			camera_view = CAM.ONE
@@ -200,11 +206,6 @@ func _physics_process(delta):
 		var dist = last_origin.distance_to($target.translation)
 		var t = 1.0 - dist / RING_WIDTH
 
-		if ball == null:
-			ball = Ball.instance()
-			ball.translation = Vector3(0,0,-25)
-			add_child(ball)
-			
 		if playerball == null:
 			playerball = PlayerBall.instance()
 			playerball.translation = Vector3.DOWN * (RING_RADIUS - 1) + Vector3.FORWARD * 15.0
@@ -237,9 +238,9 @@ func _physics_process(delta):
 				if camera_view == CAM.ONE:
 					$BallCamera.translation = lerp($BallCamera.translation, playerball.translation, 0.9)
 					$BallCamera.look_at(p, -side.rotated(forward.normalized(), angular_offset))
-				if camera_view == CAM.TWO:
-					$BallCamera.translation = lerp($BallCamera.translation, ball.translation, 0.9)
-					$BallCamera.look_at(p, Vector3.UP)
+#				if camera_view == CAM.TWO:
+#					$BallCamera.translation = lerp($BallCamera.translation, ball.translation, 0.9)
+#					$BallCamera.look_at(p, Vector3.UP)
 					
 			# NOTE Curve3D.interpolatef() does cubic interpolation (ease out)
 			var p = lerp($Path.curve.get_point_position(0), $Path.curve.get_point_position(1), t)
