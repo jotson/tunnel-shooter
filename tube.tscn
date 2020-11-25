@@ -161,7 +161,6 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 29.6727 )
 cull_mask = 1048573
 environment = SubResource( 7 )
 current = true
-fov = 90.0
 far = 1000.0
 
 [node name="Gamepad" parent="ui/container" instance=ExtResource( 6 )]
@@ -194,7 +193,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 stream = ExtResource( 5 )
 autoplay = true
-[connection signal="area_entered" from="Camera/sweep" to="." method="_on_back_area_entered"]
 [connection signal="area_entered" from="Camera/sweep" to="." method="_on_sweep_area_entered"]
 [connection signal="body_entered" from="Camera/sweep" to="." method="_on_sweep_body_entered"]
 [connection signal="timeout" from="ui/videoswitchtimer" to="." method="_on_videoswitchtimer_timeout"]

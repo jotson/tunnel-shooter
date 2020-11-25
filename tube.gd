@@ -80,7 +80,7 @@ func _ready():
 	noisez.period = 20.0
 	noisez.persistence = 0.8
 	
-	ui.get_node("View").text = "3rd person"
+	ui.get_node("View").text = "CAM 0"
 	
 
 func _physics_process(delta):
@@ -187,13 +187,10 @@ func _physics_process(delta):
 
 	if Input.is_action_just_pressed("camera"):
 		if camera_view == CAM.ZERO:
-			ui.get_node("View").text = "1st person"
+			ui.get_node("View").text = "CAM 1"
 			camera_view = CAM.ONE
-#		elif camera_view == CAM.ONE:
-#			ui.get_node("View").text = "1st person RED"
-#			camera_view = CAM.TWO
 		else:
-			ui.get_node("View").text = "3rd person"
+			ui.get_node("View").text = "CAM 0"
 			camera_view = CAM.ZERO
 			
 		if camera_view == CAM.ZERO:
@@ -203,56 +200,51 @@ func _physics_process(delta):
 			$Camera.current = false
 			$BallCamera.current = true
 	
-	if throttle > 0:
-		var dist = last_origin.distance_to($target.translation)
-		var t = 1.0 - dist / RING_WIDTH
+	var dist = last_origin.distance_to($target.translation)
+	var t = 1.0 - dist / RING_WIDTH
+	
+	if playerball == null:
+		playerball = PlayerBall.instance()
+		playerball.translation = Vector3.DOWN * (RING_RADIUS - 1) + Vector3.FORWARD * 15.0
+		add_child(playerball)
+		
+	if $Path.curve.get_point_count() > 20:
+		var points = $Path.curve.get_point_count()
+		var world_look = lerp($Path.curve.get_point_position(points-20), $Path.curve.get_point_position(points-19), t)
+		var current_pos = ui.get_node("ViewportContainer/Viewport/WorldCam").translation
+		ui.get_node("ViewportContainer/Viewport/WorldCam").translation = lerp(current_pos, $target.translation + Vector3(10,10,-50), 0.5)
+		ui.get_node("ViewportContainer/Viewport/WorldCam").look_at(world_look, Vector3.UP)
 
-		if playerball == null:
-			playerball = PlayerBall.instance()
-			playerball.translation = Vector3.DOWN * (RING_RADIUS - 1) + Vector3.FORWARD * 15.0
-			add_child(playerball)
+	if $Path.curve.get_point_count() < RING_COUNT:
+		t = 0
+		camera_velocity.update_position($Camera.translation)
+		$BallCamera.look_at(playerball.translation + Vector3.FORWARD, Vector3.UP)
+		$BallCamera.translation = lerp($BallCamera.translation, playerball.translation, 0.9)
+	else:
+		# Nove player ball
+		var this_ring = ring_data[6]
+		var next_ring = ring_data[7]
+		var p = lerp($Path.curve.get_point_position(6), $Path.curve.get_point_position(7), t)
+		var side = lerp(this_ring.side, next_ring.side, t)
+		var forward = lerp(this_ring.forward, next_ring.forward, t)
+		playerball.translation = p + side.rotated(forward, angular_offset) * (RING_RADIUS - 1)
 			
-		if $Path.curve.get_point_count() > 20:
-			var points = $Path.curve.get_point_count()
-			var world_look = lerp($Path.curve.get_point_position(points-20), $Path.curve.get_point_position(points-19), t)
-			var current_pos = ui.get_node("ViewportContainer/Viewport/WorldCam").translation
-			ui.get_node("ViewportContainer/Viewport/WorldCam").translation = lerp(current_pos, $target.translation + Vector3(10,10,-50), 0.5)
-			ui.get_node("ViewportContainer/Viewport/WorldCam").look_at(world_look, Vector3.UP)
+		# NOTE Curve3D.interpolatef() does cubic interpolation (ease out)
+		p = lerp($Path.curve.get_point_position(0), $Path.curve.get_point_position(1), t)
+		$Camera.translation = p
+		p = lerp($Path.curve.get_point_position(6), $Path.curve.get_point_position(7), t)
+		$Camera.look_at(p, Vector3.UP)
+		camera_velocity.update_position($Camera.translation)
 
-		if $Path.curve.get_point_count() < RING_COUNT:
-			t = 0
-			camera_velocity.update_position($Camera.translation)
-			$BallCamera.look_at(playerball.translation + Vector3.FORWARD, Vector3.UP)
+		# Move 1st person camera
+		p = lerp($Path.curve.get_point_position(RING_COUNT/4 - 2), $Path.curve.get_point_position(RING_COUNT/4 - 1), t)
+		if camera_view == CAM.ZERO:
+			$BallCamera.look_at(p, Vector3.UP)
+		if camera_view == CAM.ONE:
 			$BallCamera.translation = lerp($BallCamera.translation, playerball.translation, 0.9)
-		else:
-			if playerball:
-				# Nove player ball
-				var this_ring = ring_data[6]
-				var next_ring = ring_data[7]
-				var p = lerp($Path.curve.get_point_position(6), $Path.curve.get_point_position(7), t)
-				var side = lerp(this_ring.side, next_ring.side, t)
-				var forward = lerp(this_ring.forward, next_ring.forward, t)
-				playerball.translation = p + side.rotated(forward, angular_offset) * (RING_RADIUS - 1)
-				
-				# Move 1st person camera
-				p = lerp($Path.curve.get_point_position(RING_COUNT/4 - 2), $Path.curve.get_point_position(RING_COUNT/4 - 1), t)
-				$BallCamera.look_at(p, Vector3.UP)
-				if camera_view == CAM.ZERO:
-					pass
-				if camera_view == CAM.ONE:
-					$BallCamera.translation = lerp($BallCamera.translation, playerball.translation, 0.9)
-					$BallCamera.look_at(p, -side.rotated(forward.normalized(), angular_offset))
-#				if camera_view == CAM.TWO:
-#					$BallCamera.translation = lerp($BallCamera.translation, ball.translation, 0.9)
-#					$BallCamera.look_at(p, Vector3.UP)
-					
-			# NOTE Curve3D.interpolatef() does cubic interpolation (ease out)
-			var p = lerp($Path.curve.get_point_position(0), $Path.curve.get_point_position(1), t)
-			$Camera.translation = p
-			p = lerp($Path.curve.get_point_position(6), $Path.curve.get_point_position(7), t)
-			$Camera.look_at(p, Vector3.UP)
-			camera_velocity.update_position($Camera.translation)
-			
+			$BallCamera.look_at(p, -side.rotated(forward.normalized(), angular_offset))
+
+	if throttle > 0:
 		var scale = 1.0
 		scale = 1.0 + throttle * CURVYNESS
 		if ring < 20:
