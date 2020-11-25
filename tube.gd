@@ -123,23 +123,24 @@ func _physics_process(delta):
 			
 	$TunnelCollision/CollisionShape.visible = Game.DEBUG
 	
-	if Input.is_action_pressed("faster"):
-		throttle += 0.5 * delta * Input.get_action_strength("faster")
-		if throttle >= 1:
-			throttle = 1
-
-	if Input.is_action_pressed("slower"):
-		throttle -= 0.5 * delta * Input.get_action_strength("slower")
-		if throttle <= 0:
-			throttle = 0
-
 	var input = false
-	if Input.is_action_pressed("left"):
-		input = true
-		angular_offset_v = lerp(angular_offset_v, angular_offset_a * delta * Input.get_action_strength("left"), angular_offset_damp)
-	elif Input.is_action_pressed("right"):
-		input = true
-		angular_offset_v = lerp(angular_offset_v, -angular_offset_a * delta * Input.get_action_strength("right"), angular_offset_damp)
+	if $Path.curve.get_point_count() >= RING_COUNT:
+		if Input.is_action_pressed("faster"):
+			throttle += 0.5 * delta * Input.get_action_strength("faster")
+			if throttle >= 1:
+				throttle = 1
+
+		if Input.is_action_pressed("slower"):
+			throttle -= 0.5 * delta * Input.get_action_strength("slower")
+			if throttle <= 0:
+				throttle = 0
+
+		if Input.is_action_pressed("left"):
+			input = true
+			angular_offset_v = lerp(angular_offset_v, angular_offset_a * delta * Input.get_action_strength("left"), angular_offset_damp)
+		elif Input.is_action_pressed("right"):
+			input = true
+			angular_offset_v = lerp(angular_offset_v, -angular_offset_a * delta * Input.get_action_strength("right"), angular_offset_damp)
 
 	# Damp velocity when no input	
 	if not input:

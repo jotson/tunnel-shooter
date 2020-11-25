@@ -13,6 +13,5 @@ func _physics_process(_delta):
 
 func _on_Area_body_entered(_body):
 	if visible:
-		# TODO play sound
-		pass
+		$beepSfx.play()
 	hide()
