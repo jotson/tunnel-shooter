@@ -1,0 +1,209 @@
+[gd_scene load_steps=18 format=2]
+
+[ext_resource path="res://gamepad/button-active.png" type="Texture" id=1]
+[ext_resource path="res://gamepad/base.png" type="Texture" id=2]
+[ext_resource path="res://gamepad/analog-active.png" type="Texture" id=3]
+[ext_resource path="res://gamepad/analog.png" type="Texture" id=4]
+[ext_resource path="res://gamepad/button.png" type="Texture" id=5]
+[ext_resource path="res://gamepad/dpad-right.png" type="Texture" id=6]
+[ext_resource path="res://gamepad/dpad.png" type="Texture" id=7]
+[ext_resource path="res://gamepad/dpad-left.png" type="Texture" id=8]
+[ext_resource path="res://gamepad/dpad-up.png" type="Texture" id=9]
+[ext_resource path="res://gamepad/smallbutton-active.png" type="Texture" id=10]
+[ext_resource path="res://gamepad/smallbutton.png" type="Texture" id=11]
+[ext_resource path="res://gamepad/dpad-down.png" type="Texture" id=12]
+[ext_resource path="res://gamepad/gamepad.gd" type="Script" id=13]
+[ext_resource path="res://gamepad/lb-active.png" type="Texture" id=14]
+[ext_resource path="res://gamepad/rb-active.png" type="Texture" id=15]
+[ext_resource path="res://gamepad/rt-active.png" type="Texture" id=16]
+[ext_resource path="res://gamepad/lt-active.png" type="Texture" id=17]
+
+[node name="Gamepad" type="TextureRect"]
+margin_right = 40.0
+margin_bottom = 40.0
+texture = ExtResource( 2 )
+script = ExtResource( 13 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+DEADZONE = 0.3
+
+[node name="LS" type="TextureButton" parent="."]
+margin_left = 48.0
+margin_top = 42.0
+margin_right = 77.0
+margin_bottom = 71.0
+toggle_mode = true
+texture_normal = ExtResource( 4 )
+texture_pressed = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="RS" type="TextureButton" parent="."]
+margin_left = 144.0
+margin_top = 79.0
+margin_right = 173.0
+margin_bottom = 108.0
+toggle_mode = true
+texture_normal = ExtResource( 4 )
+texture_pressed = ExtResource( 3 )
+
+[node name="Dpad" type="TextureRect" parent="."]
+margin_left = 76.0
+margin_top = 78.0
+margin_right = 111.0
+margin_bottom = 115.0
+texture = ExtResource( 7 )
+
+[node name="Up" type="TextureRect" parent="Dpad"]
+visible = false
+margin_right = 35.0
+margin_bottom = 37.0
+texture = ExtResource( 9 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Down" type="TextureRect" parent="Dpad"]
+visible = false
+margin_right = 35.0
+margin_bottom = 37.0
+texture = ExtResource( 12 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Left" type="TextureRect" parent="Dpad"]
+visible = false
+margin_right = 35.0
+margin_bottom = 37.0
+texture = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Right" type="TextureRect" parent="Dpad"]
+visible = false
+margin_right = 35.0
+margin_bottom = 37.0
+texture = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="A" type="TextureButton" parent="."]
+margin_left = 181.0
+margin_top = 65.0
+margin_right = 197.0
+margin_bottom = 81.0
+toggle_mode = true
+texture_normal = ExtResource( 5 )
+texture_pressed = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="B" type="TextureButton" parent="."]
+margin_left = 198.0
+margin_top = 49.0
+margin_right = 214.0
+margin_bottom = 65.0
+toggle_mode = true
+texture_normal = ExtResource( 5 )
+texture_pressed = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="X" type="TextureButton" parent="."]
+margin_left = 164.0
+margin_top = 48.0
+margin_right = 180.0
+margin_bottom = 64.0
+toggle_mode = true
+texture_normal = ExtResource( 5 )
+texture_pressed = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Y" type="TextureButton" parent="."]
+margin_left = 181.0
+margin_top = 32.0
+margin_right = 197.0
+margin_bottom = 48.0
+toggle_mode = true
+texture_normal = ExtResource( 5 )
+texture_pressed = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Start" type="TextureButton" parent="."]
+margin_left = 138.0
+margin_top = 51.0
+margin_right = 148.0
+margin_bottom = 61.0
+toggle_mode = true
+texture_normal = ExtResource( 11 )
+texture_pressed = ExtResource( 10 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Select" type="TextureButton" parent="."]
+margin_left = 103.0
+margin_top = 51.0
+margin_right = 113.0
+margin_bottom = 61.0
+toggle_mode = true
+texture_normal = ExtResource( 11 )
+texture_pressed = ExtResource( 10 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LB" type="TextureRect" parent="."]
+visible = false
+margin_left = 41.0
+margin_top = 9.0
+margin_right = 98.0
+margin_bottom = 28.0
+texture = ExtResource( 14 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="RB" type="TextureRect" parent="."]
+visible = false
+margin_left = 152.0
+margin_top = 9.0
+margin_right = 209.0
+margin_bottom = 28.0
+texture = ExtResource( 15 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LT" type="TextureRect" parent="."]
+visible = false
+margin_left = 57.0
+margin_top = 3.0
+margin_right = 75.0
+margin_bottom = 14.0
+texture = ExtResource( 17 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="RT" type="TextureRect" parent="."]
+visible = false
+margin_left = 175.0
+margin_top = 3.0
+margin_right = 193.0
+margin_bottom = 14.0
+texture = ExtResource( 16 )
+__meta__ = {
+"_edit_use_anchors_": false
+}

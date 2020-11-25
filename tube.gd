@@ -27,7 +27,7 @@ var throttle = 0.25
 var angular_offset = PI/2
 var angular_offset_v = 0.0
 var angular_offset_vmax = 2 * PI
-var angular_offset_a = 15
+var angular_offset_a = 250
 var angular_offset_damp = 0.1
 
 var camera_velocity : SpatialVelocityTracker
@@ -123,10 +123,10 @@ func _physics_process(delta):
 	var input = false
 	if Input.is_action_pressed("left"):
 		input = true
-		angular_offset_v += angular_offset_a * delta * Input.get_action_strength("left")
+		angular_offset_v = lerp(angular_offset_v, angular_offset_a * delta * Input.get_action_strength("left"), angular_offset_damp)
 	elif Input.is_action_pressed("right"):
 		input = true
-		angular_offset_v -= angular_offset_a * delta * Input.get_action_strength("right")
+		angular_offset_v = lerp(angular_offset_v, -angular_offset_a * delta * Input.get_action_strength("right"), angular_offset_damp)
 
 	# Damp velocity when no input	
 	if not input:
@@ -395,6 +395,10 @@ func toggle_pixels():
 		ui.get_node("FPS").rect_scale = Vector2(1,1)
 		ui.get_node("FPS").margin_right = -24
 		ui.get_node("FPS").margin_bottom = -8
+		
+		ui.get_node("Gamepad").rect_scale = Vector2(1,1)
+		ui.get_node("Gamepad").margin_left = 24
+		ui.get_node("Gamepad").margin_top = -206
 	else:
 		pixels = true
 		var window_size = Vector2(640,360)
@@ -402,6 +406,7 @@ func toggle_pixels():
 		var stretch_mode = SceneTree.STRETCH_MODE_VIEWPORT
 		get_tree().set_screen_stretch(stretch_mode, aspect, window_size)
 		get_viewport().msaa = Viewport.MSAA_DISABLED
+		
 		ui.get_node("ViewportContainer").rect_size = Vector2(120,100)
 		ui.get_node("ViewportContainer").margin_left = -120
 		ui.get_node("ViewportContainer").margin_bottom = 100
@@ -419,6 +424,10 @@ func toggle_pixels():
 		ui.get_node("FPS").rect_scale = Vector2(0.33, 0.33)
 		ui.get_node("FPS").margin_right = -8
 		ui.get_node("FPS").margin_bottom = -3
+		
+		ui.get_node("Gamepad").rect_scale = Vector2(0.33, 0.33)
+		ui.get_node("Gamepad").margin_left = 8
+		ui.get_node("Gamepad").margin_top = -68
 
 
 func _on_videoswitchtimer_timeout():

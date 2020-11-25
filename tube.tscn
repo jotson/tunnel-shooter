@@ -1,10 +1,11 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://tube.gd" type="Script" id=1]
 [ext_resource path="res://environment.tres" type="Environment" id=2]
 [ext_resource path="res://default_theme.tres" type="Theme" id=3]
 [ext_resource path="res://stun.ogv" type="VideoStream" id=4]
 [ext_resource path="res://tempest.ogv" type="VideoStream" id=5]
+[ext_resource path="res://gamepad/gamepad.tscn" type="PackedScene" id=6]
 
 [sub_resource type="SpatialMaterial" id=1]
 vertex_color_use_as_albedo = true
@@ -103,6 +104,7 @@ autostart = true
 [node name="container" type="Control" parent="ui"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -112,7 +114,6 @@ margin_left = 24.0
 margin_top = 8.0
 margin_right = 942.0
 margin_bottom = 78.0
-theme = ExtResource( 3 )
 text = "SPEED"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -123,7 +124,6 @@ margin_left = 24.0
 margin_top = 72.0
 margin_right = 440.0
 margin_bottom = 142.0
-theme = ExtResource( 3 )
 text = "VIEW"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -139,7 +139,6 @@ margin_top = -78.0
 margin_right = -24.0
 margin_bottom = -8.0
 rect_pivot_offset = Vector2( 888, 78 )
-theme = ExtResource( 3 )
 text = "FPS"
 align = 2
 __meta__ = {
@@ -169,6 +168,14 @@ environment = SubResource( 8 )
 current = true
 fov = 50.0
 far = 1000.0
+
+[node name="Gamepad" parent="ui/container" instance=ExtResource( 6 )]
+anchor_top = 1.0
+anchor_bottom = 1.0
+margin_left = 24.0
+margin_top = -206.0
+margin_right = 274.0
+margin_bottom = -24.0
 
 [node name="VideoPanel" type="Panel" parent="ui/container"]
 visible = false
