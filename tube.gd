@@ -18,6 +18,7 @@ const Ball = preload("res://ball.tscn")
 const PlayerBall = preload("res://playerball.tscn")
 const HallwayLight = preload("res://light.tscn")
 const Gate = preload("res://gate.tscn")
+const Block = preload("res://block.tscn")
 
 var lights = []
 var MAX_LIGHTS = 6
@@ -319,10 +320,14 @@ func create_ring():
 		add_child(o)
 		o.look_at(o.translation + forward, Vector3.UP)
 		o.rotate(forward, position + PI/2)
-		
-		for node in get_tree().get_nodes_in_group('gate'):
-			if node.translation.distance_to($Camera.translation) > 1000:
-				node.queue_free()
+
+	if randi() % 20 == 0:
+		var o = Block.instance()
+		var position = randf() * 2 * PI
+		o.translation = origin + side.rotated(forward, position) * RING_RADIUS
+		add_child(o)
+		o.look_at(o.translation + forward, Vector3.UP)
+		o.rotate(forward, position + PI/2)
 		
 	for j in range(RING_VERTICES):
 		var v : Vector3
