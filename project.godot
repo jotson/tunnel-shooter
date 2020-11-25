@@ -23,10 +23,6 @@ config/icon="res://icon.png"
 
 Game="*res://game.gd"
 
-[debug]
-
-settings/stdout/print_fps=true
-
 [display]
 
 window/size/width=1920
