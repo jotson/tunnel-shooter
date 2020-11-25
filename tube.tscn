@@ -193,6 +193,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 stream = ExtResource( 5 )
 autoplay = true
+
+[node name="shootCooldown" type="Timer" parent="."]
+wait_time = 0.05
+one_shot = true
 [connection signal="area_entered" from="Camera/Sweep" to="." method="_on_sweep_area_entered"]
 [connection signal="body_entered" from="Camera/Sweep" to="." method="_on_sweep_body_entered"]
 [connection signal="timeout" from="ui/videoswitchtimer" to="." method="_on_videoswitchtimer_timeout"]

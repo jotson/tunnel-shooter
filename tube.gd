@@ -192,12 +192,13 @@ func _physics_process(delta):
 	if Input.is_action_just_pressed("screen"):
 		toggle_pixels()
 
-	if Input.is_action_pressed("addball"):
+	if Input.is_action_pressed("addball") and $shootCooldown.is_stopped():
+		$shootCooldown.start()
 		var this_ring = ring_data[0]
 		var o = Ball.instance()
 		o.translation = this_ring.origin + this_ring.forward * 4 + this_ring.side.rotated(this_ring.forward, OS.get_ticks_msec()/250.0) * (RING_RADIUS-1)
 		add_child(o)
-		o.apply_central_impulse(this_ring.forward * target_velocity.length() * throttle * 2)
+		o.apply_central_impulse(this_ring.forward * (target_velocity.length() * throttle + 50))
 
 	if Input.is_action_just_pressed("camera"):
 		if camera_view == CAM.ZERO:

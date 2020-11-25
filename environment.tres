@@ -12,6 +12,7 @@ fog_depth_end = 120.0
 fog_depth_curve = 2.0
 tonemap_mode = 2
 auto_exposure_enabled = true
+ssao_enabled = true
 dof_blur_far_enabled = true
 dof_blur_far_distance = 100.0
 dof_blur_far_transition = 30.0

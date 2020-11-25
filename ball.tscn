@@ -23,7 +23,7 @@ albedo_color = Color( 0, 0.811765, 1, 1 )
 ]]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.53507, 1.9511, -2.21665 )
 collision_layer = 2
-collision_mask = 2148007937
+collision_mask = 2148007939
 physics_material_override = SubResource( 1 )
 linear_damp = 0.0
 angular_damp = 0.0
