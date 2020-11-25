@@ -1,11 +1,19 @@
 [gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://ball.gd" type="Script" id=1]
-
 [sub_resource type="PhysicsMaterial" id=1]
 friction = 0.5
 bounce = 1.0
 absorbent = true
+
+[sub_resource type="GDScript" id=6]
+script/source = "extends RigidBody
+
+func _ready():
+	pass
+
+func _physics_process(_delta):
+	$CollisionShape.visible = get_tree().current_scene.debug
+"
 
 [sub_resource type="SpatialMaterial" id=2]
 
@@ -19,10 +27,11 @@ albedo_color = Color( 0.823529, 0.152941, 0.152941, 1 )
 
 [node name="Ball" type="RigidBody"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.53507, 1.9511, -2.21665 )
+collision_layer = 2
 physics_material_override = SubResource( 1 )
 linear_damp = 0.0
 angular_damp = 0.0
-script = ExtResource( 1 )
+script = SubResource( 6 )
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = SubResource( 3 )

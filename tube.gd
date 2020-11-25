@@ -17,6 +17,7 @@ var ring = 0
 const Ball = preload("res://ball.tscn")
 const PlayerBall = preload("res://playerball.tscn")
 const HallwayLight = preload("res://light.tscn")
+const Gate = preload("res://gate.tscn")
 
 var lights = []
 var MAX_LIGHTS = 6
@@ -44,6 +45,7 @@ var noisey
 var noisez
 
 var pixels = false
+var debug = false
 
 onready var ui = $ui/container
 
@@ -92,7 +94,7 @@ func _physics_process(delta):
 	ui.get_node("FPS").text = "[ %d FPS %s%s]" % [
 		Engine.get_frames_per_second(),
 		'VSYNC ' if OS.vsync_enabled else '',
-		'8xMSAA ' if get_viewport().msaa != Viewport.MSAA_DISABLED else ''
+		'HD ' if get_viewport().msaa != Viewport.MSAA_DISABLED else 'PIXEL '
 		]
 
 	var last_origin = Vector3.ZERO
@@ -109,6 +111,14 @@ func _physics_process(delta):
 			OS.vsync_enabled = false
 		else:
 			OS.vsync_enabled = true
+	
+	if Input.is_action_just_pressed("debug"):
+		if debug:
+			debug = false
+		else:
+			debug = true
+			
+	$TunnelCollision/CollisionShape.visible = debug
 	
 	if Input.is_action_pressed("faster"):
 		throttle += 0.5 * delta * Input.get_action_strength("faster")
@@ -185,12 +195,6 @@ func _physics_process(delta):
 		var dist = last_origin.distance_to($target.translation)
 		var t = 1.0 - dist / RING_WIDTH
 
-		var world_look = lerp($Path.curve.get_point_position(RING_COUNT*0.8-1), $Path.curve.get_point_position(RING_COUNT*0.8), t)
-		if $Path.curve.get_point_count() < RING_COUNT*0.8:
-			world_look = $target.translation
-		ui.get_node("ViewportContainer/Viewport/WorldCam").translation = $target.translation + Vector3(60, 60, 60)
-		ui.get_node("ViewportContainer/Viewport/WorldCam").look_at(world_look, Vector3.UP)
-
 		if ball == null:
 			ball = Ball.instance()
 			ball.translation = Vector3(0,0,-25)
@@ -198,7 +202,6 @@ func _physics_process(delta):
 			
 		if playerball == null:
 			playerball = PlayerBall.instance()
-			playerball.mode = RigidBody.MODE_KINEMATIC
 			playerball.translation = Vector3.DOWN * (RING_RADIUS - 1) + Vector3.FORWARD * 15.0
 			add_child(playerball)
 			
@@ -206,6 +209,12 @@ func _physics_process(delta):
 			t = 0
 			camera_velocity.update_position($Camera.translation)
 		else:
+			var world_look = lerp($Path.curve.get_point_position(RING_COUNT*0.8-1), $Path.curve.get_point_position(RING_COUNT*0.8), t)
+			if $Path.curve.get_point_count() < RING_COUNT*0.8:
+				world_look = $target.translation
+			ui.get_node("ViewportContainer/Viewport/WorldCam").translation = $target.translation + Vector3(60, 60, 60)
+			ui.get_node("ViewportContainer/Viewport/WorldCam").look_at(world_look, Vector3.UP)
+
 			if playerball:
 				# Nove player ball
 				var this_ring = ring_data[6]
@@ -214,7 +223,7 @@ func _physics_process(delta):
 				var side = lerp(this_ring.side, next_ring.side, t)
 				var forward = lerp(this_ring.forward, next_ring.forward, t)
 				playerball.translation = p + side.rotated(forward, angular_offset) * (RING_RADIUS - 1)
-
+				
 				# Move 1st person camera
 				p = lerp($Path.curve.get_point_position(RING_COUNT/4 - 2), $Path.curve.get_point_position(RING_COUNT/4 - 1), t)
 				$BallCamera.look_at(p, Vector3.UP)
@@ -226,11 +235,6 @@ func _physics_process(delta):
 				if camera_view == CAM.TWO:
 					$BallCamera.translation = lerp($BallCamera.translation, ball.translation, 0.9)
 					$BallCamera.look_at(p, Vector3.UP)
-					
-#			if ball:
-#				var this_ring = ring_data[15]
-#				if ball.translation.distance_to(this_ring.origin) > (RING_RADIUS-1):
-#					ball.translation = (ball.translation - this_ring.origin).normalized() * (RING_RADIUS-1)
 					
 			# NOTE Curve3D.interpolatef() does cubic interpolation (ease out)
 			var p = lerp($Path.curve.get_point_position(0), $Path.curve.get_point_position(1), t)
@@ -301,6 +305,18 @@ func create_ring():
 		if lights.size() > MAX_LIGHTS:
 			var l = lights.pop_front()
 			l.queue_free()
+			
+	if randi() % 15 == 0:
+		var o = Gate.instance()
+		var position = randf() * 2 * PI
+		o.translation = origin + side.rotated(forward, position) * RING_RADIUS
+		add_child(o)
+		o.look_at(o.translation + forward, Vector3.UP)
+		o.rotate(forward, position + PI/2)
+		
+		for node in get_tree().get_nodes_in_group('gate'):
+			if node.translation.distance_to($Camera.translation) > 1000:
+				node.queue_free()
 		
 	for j in range(RING_VERTICES):
 		var v : Vector3
