@@ -8,7 +8,7 @@ var RING_VERTICES = 24
 var MAX_SPEED = 100
 var CURVYNESS = 3
 
-var SEED = 2
+var SEED = 3
 
 var ring_mesh_data = []
 var ring_data = []
@@ -51,6 +51,8 @@ onready var ui = $ui/container
 
 
 func _ready():
+	seed(SEED)
+	
 	OS.vsync_enabled = true
 	
 	ui.get_node("VideoPanel/VideoPlayer1").stop()
@@ -60,8 +62,6 @@ func _ready():
 	target_velocity = starting_velocity
 	
 	camera_velocity = SpatialVelocityTracker.new()
-	
-	seed(SEED)
 	
 	noisex = OpenSimplexNoise.new()
 	noisex.seed = randi()
@@ -85,6 +85,8 @@ func _ready():
 	
 
 func _physics_process(delta):
+	seed(SEED+ring)
+	
 	var feet_per_meter = 3.28084
 	var feet_per_mile = 5280
 	var seconds_per_hour = 3600
@@ -245,6 +247,8 @@ func _physics_process(delta):
 			
 		var scale = 1.0
 		scale = 1.0 + throttle * CURVYNESS
+		if ring < 20:
+			scale = 0.0
 		target_velocity.x += noisex.get_noise_1d(ring * 0.3) * scale
 		target_velocity.y += noisey.get_noise_1d(ring * 0.3) * scale
 		target_velocity.z += noisez.get_noise_1d(ring * 0.3) * scale
