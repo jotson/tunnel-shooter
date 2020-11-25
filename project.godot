@@ -122,3 +122,4 @@ debug={
 quality/2d/use_pixel_snap=true
 quality/filters/msaa=3
 environment/default_environment="res://default_env.tres"
+quality/dynamic_fonts/use_oversampling=false

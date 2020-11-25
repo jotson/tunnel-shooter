@@ -11,7 +11,7 @@ func _physics_process(_delta):
 		queue_free()
 
 
-func _on_Area_body_entered(body):
+func _on_Area_body_entered(_body):
 	if visible:
 		# TODO play sound
 		pass

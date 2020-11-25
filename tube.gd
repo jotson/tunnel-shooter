@@ -99,7 +99,9 @@ func _physics_process(delta):
 		]
 
 	var last_origin = Vector3.ZERO
+# warning-ignore:unused_variable
 	var last_forward = Vector3.FORWARD
+# warning-ignore:unused_variable
 	var last_side = Vector3.RIGHT
 	if ring_data.size():	
 		var last_ring = ring_data[ring_data.size()-1]
