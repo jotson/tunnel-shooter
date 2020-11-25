@@ -10,7 +10,7 @@
 [sub_resource type="SpatialMaterial" id=1]
 vertex_color_use_as_albedo = true
 params_cull_mode = 2
-metallic = 0.05
+metallic = 0.19
 metallic_specular = 0.71
 roughness = 0.0
 
@@ -52,12 +52,12 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.760982 )
 environment = ExtResource( 2 )
 far = 1000.0
 
-[node name="sweep" type="Area" parent="Camera"]
+[node name="Sweep" type="Area" parent="Camera"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 21.7752 )
 collision_layer = 524288
 collision_mask = 6
 
-[node name="collision" type="CollisionShape" parent="Camera/sweep"]
+[node name="collision" type="CollisionShape" parent="Camera/Sweep"]
 shape = SubResource( 3 )
 
 [node name="BallCamera" type="Camera" parent="."]
@@ -193,8 +193,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 stream = ExtResource( 5 )
 autoplay = true
-[connection signal="area_entered" from="Camera/sweep" to="." method="_on_sweep_area_entered"]
-[connection signal="body_entered" from="Camera/sweep" to="." method="_on_sweep_body_entered"]
+[connection signal="area_entered" from="Camera/Sweep" to="." method="_on_sweep_area_entered"]
+[connection signal="body_entered" from="Camera/Sweep" to="." method="_on_sweep_body_entered"]
 [connection signal="timeout" from="ui/videoswitchtimer" to="." method="_on_videoswitchtimer_timeout"]
 [connection signal="finished" from="ui/container/VideoPanel/VideoPlayer1" to="." method="_on_VideoPlayer1_finished"]
 [connection signal="finished" from="ui/container/VideoPanel/VideoPlayer2" to="." method="_on_VideoPlayer2_finished"]

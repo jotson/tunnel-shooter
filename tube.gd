@@ -121,8 +121,22 @@ func _physics_process(delta):
 		else:
 			Game.DEBUG = true
 			
+	if Input.is_action_just_pressed("screen1"):
+		OS.window_fullscreen = false
+		yield(get_tree(), 'idle_frame')
+		OS.current_screen = 0
+		yield(get_tree(), 'idle_frame')
+		OS.window_fullscreen = true
+			
+	if Input.is_action_just_pressed("screen2"):
+		OS.window_fullscreen = false
+		yield(get_tree(), 'idle_frame')
+		OS.current_screen = 1
+		yield(get_tree(), 'idle_frame')
+		OS.window_fullscreen = true
+
 	$TunnelCollision/CollisionShape.visible = Game.DEBUG
-	$Camera/sweep/collision.visible = Game.DEBUG
+	$Camera/Sweep/collision.visible = Game.DEBUG
 	
 	var input = false
 	if $Path.curve.get_point_count() >= RING_COUNT:
@@ -228,7 +242,8 @@ func _physics_process(delta):
 		var side = lerp(this_ring.side, next_ring.side, t)
 		var forward = lerp(this_ring.forward, next_ring.forward, t)
 		playerball.translation = p + side.rotated(forward, angular_offset) * (RING_RADIUS - 1)
-			
+		playerball.look_at(playerball.translation + forward, Vector3.UP)
+		
 		# NOTE Curve3D.interpolatef() does cubic interpolation (ease out)
 		p = lerp($Path.curve.get_point_position(0), $Path.curve.get_point_position(1), t)
 		$Camera.translation = p
@@ -400,6 +415,7 @@ func toggle_pixels():
 		var window_size = Vector2(1920,1080)
 		var aspect = SceneTree.STRETCH_ASPECT_IGNORE
 		var stretch_mode = SceneTree.STRETCH_MODE_DISABLED
+		$Camera.environment.ss_reflections_enabled = true
 		get_tree().set_screen_stretch(stretch_mode, aspect, window_size)
 		get_viewport().msaa = Viewport.MSAA_8X
 		ui.get_node("ViewportContainer").rect_size = Vector2(360,300)
@@ -428,6 +444,7 @@ func toggle_pixels():
 		var window_size = Vector2(640,360)
 		var aspect = SceneTree.STRETCH_ASPECT_KEEP
 		var stretch_mode = SceneTree.STRETCH_MODE_VIEWPORT
+		$Camera.environment.ss_reflections_enabled = false
 		get_tree().set_screen_stretch(stretch_mode, aspect, window_size)
 		get_viewport().msaa = Viewport.MSAA_DISABLED
 		
