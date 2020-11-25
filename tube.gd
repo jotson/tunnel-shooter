@@ -415,7 +415,6 @@ func toggle_pixels():
 		var window_size = Vector2(1920,1080)
 		var aspect = SceneTree.STRETCH_ASPECT_IGNORE
 		var stretch_mode = SceneTree.STRETCH_MODE_DISABLED
-		$Camera.environment.ss_reflections_enabled = true
 		get_tree().set_screen_stretch(stretch_mode, aspect, window_size)
 		get_viewport().msaa = Viewport.MSAA_8X
 		ui.get_node("ViewportContainer").rect_size = Vector2(360,300)
@@ -444,7 +443,6 @@ func toggle_pixels():
 		var window_size = Vector2(640,360)
 		var aspect = SceneTree.STRETCH_ASPECT_KEEP
 		var stretch_mode = SceneTree.STRETCH_MODE_VIEWPORT
-		$Camera.environment.ss_reflections_enabled = false
 		get_tree().set_screen_stretch(stretch_mode, aspect, window_size)
 		get_viewport().msaa = Viewport.MSAA_DISABLED
 		
