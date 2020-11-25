@@ -6,4 +6,5 @@ func _ready():
 
 
 func _physics_process(_delta):
-	$CollisionShape.visible = get_tree().current_scene.debug
+	$CollisionShape.visible = Game.DEBUG
+	Game.PLAYER_POSITION = translation

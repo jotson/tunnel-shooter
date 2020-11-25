@@ -1,13 +1,18 @@
-extends StaticBody
+extends Area
 
 func _ready():
 	pass
 
 
 func _physics_process(_delta):
-	$CollisionShape.visible = get_tree().current_scene.debug
-	$Area2D/CollisionShape.visible = get_tree().current_scene.debug
+	$CollisionShape.visible = Game.DEBUG
+	
+	if translation.distance_to(Game.PLAYER_POSITION) > 500:
+		queue_free()
 
 
-func _on_Area2D_body_entered(body):
-	queue_free()
+func _on_Area_body_entered(body):
+	if visible:
+		# TODO play sound
+		pass
+	hide()

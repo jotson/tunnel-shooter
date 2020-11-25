@@ -45,7 +45,6 @@ var noisey
 var noisez
 
 var pixels = false
-var debug = false
 
 onready var ui = $ui/container
 
@@ -115,12 +114,12 @@ func _physics_process(delta):
 			OS.vsync_enabled = true
 	
 	if Input.is_action_just_pressed("debug"):
-		if debug:
-			debug = false
+		if Game.DEBUG:
+			Game.DEBUG = false
 		else:
-			debug = true
+			Game.DEBUG = true
 			
-	$TunnelCollision/CollisionShape.visible = debug
+	$TunnelCollision/CollisionShape.visible = Game.DEBUG
 	
 	if Input.is_action_pressed("faster"):
 		throttle += 0.5 * delta * Input.get_action_strength("faster")
