@@ -8,6 +8,8 @@ Please let me know if you make anything interesting with this -- I'd love to see
 
 Made with Godot 3.2
 
+![Screenshot](https://github.com/jotson/tunnel-shooter/blob/main/screenshot.png?raw=true)
+
 # Who am I?
 
 I'm making a game called [Gravity Ace](https://gravityace.com)
