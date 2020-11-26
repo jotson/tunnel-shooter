@@ -8,6 +8,7 @@ var RING_VERTICES = 24
 var MAX_SPEED = 100
 var CURVYNESS = 3
 
+# Change this to get a different tunnel
 var SEED = 75
 
 var ring_mesh_data = []

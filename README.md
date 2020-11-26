@@ -4,7 +4,7 @@ Like S.T.U.N. Runner and Tempest had a baby
 
 This is a rough prototype of a game concept
 
-No guarantees
+Please let me know if you make anything interesting with this -- I'd love to see it
 
 Made with Godot 3.2
 
@@ -27,3 +27,7 @@ Check it out
 * Enter or Gamepad Start to toggle Pixel art mode
 * D to toggle visible collision shapes
 * B or Gamepad right trigger to shoot physics balls
+
+# Notes
+
+Change SEED in tube.gd to get a different tunnel
