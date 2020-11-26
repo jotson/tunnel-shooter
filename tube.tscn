@@ -1,10 +1,8 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://tube.gd" type="Script" id=1]
 [ext_resource path="res://environment.tres" type="Environment" id=2]
 [ext_resource path="res://default_theme.tres" type="Theme" id=3]
-[ext_resource path="res://stun.ogv" type="VideoStream" id=4]
-[ext_resource path="res://tempest.ogv" type="VideoStream" id=5]
 [ext_resource path="res://gamepad/gamepad.tscn" type="PackedScene" id=6]
 
 [sub_resource type="SpatialMaterial" id=1]
@@ -171,34 +169,9 @@ margin_top = -206.0
 margin_right = 274.0
 margin_bottom = -24.0
 
-[node name="VideoPanel" type="Panel" parent="ui/container"]
-visible = false
-anchor_right = 1.0
-anchor_bottom = 1.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="VideoPlayer1" type="VideoPlayer" parent="ui/container/VideoPanel"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-stream = ExtResource( 4 )
-autoplay = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="VideoPlayer2" type="VideoPlayer" parent="ui/container/VideoPanel"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-stream = ExtResource( 5 )
-autoplay = true
-
 [node name="shootCooldown" type="Timer" parent="."]
 wait_time = 0.05
 one_shot = true
 [connection signal="area_entered" from="Camera/Sweep" to="." method="_on_sweep_area_entered"]
 [connection signal="body_entered" from="Camera/Sweep" to="." method="_on_sweep_body_entered"]
 [connection signal="timeout" from="ui/videoswitchtimer" to="." method="_on_videoswitchtimer_timeout"]
-[connection signal="finished" from="ui/container/VideoPanel/VideoPlayer1" to="." method="_on_VideoPlayer1_finished"]
-[connection signal="finished" from="ui/container/VideoPanel/VideoPlayer2" to="." method="_on_VideoPlayer2_finished"]

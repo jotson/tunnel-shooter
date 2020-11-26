@@ -8,7 +8,7 @@ var RING_VERTICES = 24
 var MAX_SPEED = 100
 var CURVYNESS = 3
 
-var SEED = 3
+var SEED = 75
 
 var ring_mesh_data = []
 var ring_data = []
@@ -54,9 +54,6 @@ func _ready():
 	
 	OS.vsync_enabled = true
 	
-	ui.get_node("VideoPanel/VideoPlayer1").stop()
-	ui.get_node("VideoPanel/VideoPlayer2").stop()
-	
 	ring_mesh_data.resize(Mesh.ARRAY_MAX)
 	target_velocity = starting_velocity
 	
@@ -86,10 +83,14 @@ func _ready():
 func _physics_process(delta):
 	seed(SEED+ring)
 	
+	var total_rings = $Path.curve.get_point_count()
+	
 	var feet_per_meter = 3.28084
 	var feet_per_mile = 5280
 	var seconds_per_hour = 3600
 	var speed = target_velocity.length() * throttle
+	if total_rings < RING_COUNT:
+		speed = 0
 	var mph = round(speed * feet_per_meter / feet_per_mile * seconds_per_hour)
 	ui.get_node("Speed").text = "[ %d MPH ]-::-[ %d m/s ]" % [mph, round(speed)]
 	ui.get_node("FPS").text = "[ %d FPS %s%s]" % [
@@ -139,7 +140,7 @@ func _physics_process(delta):
 	$Camera/Sweep/collision.visible = Game.DEBUG
 	
 	var input = false
-	if $Path.curve.get_point_count() >= RING_COUNT:
+	if total_rings >= 8:
 		if Input.is_action_pressed("faster"):
 			throttle += 0.5 * delta * Input.get_action_strength("faster")
 			if throttle >= 1:
@@ -176,19 +177,6 @@ func _physics_process(delta):
 #	if not input:
 #		angular_offset = lerp(angular_offset, PI/2, 0.03)
 		
-	if Input.is_action_just_pressed("video"):
-		$ui/videoswitchtimer.stop()
-		if ui.get_node("VideoPanel").visible:
-			ui.get_node("VideoPanel").hide()
-			ui.get_node("VideoPanel/VideoPlayer1").stop()
-			ui.get_node("VideoPanel/VideoPlayer2").stop()
-		else:
-			$ui/videoswitchtimer.start()
-			ui.get_node("VideoPanel/VideoPlayer2").show()
-			ui.get_node("VideoPanel").show()
-			ui.get_node("VideoPanel/VideoPlayer1").play()
-			ui.get_node("VideoPanel/VideoPlayer2").play()
-	
 	if Input.is_action_just_pressed("screen"):
 		toggle_pixels()
 
@@ -223,18 +211,23 @@ func _physics_process(delta):
 		playerball.translation = Vector3.DOWN * (RING_RADIUS - 1) + Vector3.FORWARD * 15.0
 		add_child(playerball)
 		
-	if $Path.curve.get_point_count() > 20:
-		var points = $Path.curve.get_point_count()
-		var world_look = lerp($Path.curve.get_point_position(points-20), $Path.curve.get_point_position(points-19), t)
+	if total_rings > 20:
+		var world_look = lerp($Path.curve.get_point_position(total_rings-20), $Path.curve.get_point_position(total_rings-19), t)
 		var current_pos = ui.get_node("ViewportContainer/Viewport/WorldCam").translation
 		ui.get_node("ViewportContainer/Viewport/WorldCam").translation = lerp(current_pos, $target.translation + Vector3(10,10,-50), 0.5)
 		ui.get_node("ViewportContainer/Viewport/WorldCam").look_at(world_look, Vector3.UP)
 
-	if $Path.curve.get_point_count() < RING_COUNT:
+	if total_rings < 8:
 		t = 0
 		camera_velocity.update_position($Camera.translation)
 		$BallCamera.look_at(playerball.translation + Vector3.FORWARD, Vector3.UP)
 		$BallCamera.translation = lerp($BallCamera.translation, playerball.translation, 0.9)
+	elif total_rings < RING_COUNT:
+		var this_ring = ring_data[7]
+		var p = $Path.curve.get_point_position(7)
+		var side = this_ring.side
+		var forward = this_ring.forward
+		playerball.translation = p + side.rotated(forward, angular_offset) * (RING_RADIUS - 1)
 	else:
 		# Nove player ball
 		var this_ring = ring_data[6]
@@ -242,8 +235,9 @@ func _physics_process(delta):
 		var p = lerp($Path.curve.get_point_position(6), $Path.curve.get_point_position(7), t)
 		var side = lerp(this_ring.side, next_ring.side, t)
 		var forward = lerp(this_ring.forward, next_ring.forward, t)
-		playerball.translation = p + side.rotated(forward, angular_offset) * (RING_RADIUS - 1)
-		playerball.look_at(playerball.translation + forward, Vector3.UP)
+		if forward.length() > 0:
+			playerball.translation = p + side.rotated(forward.normalized(), angular_offset) * (RING_RADIUS - 1)
+			playerball.look_at(playerball.translation + forward.normalized(), Vector3.UP)
 		
 		# NOTE Curve3D.interpolatef() does cubic interpolation (ease out)
 		p = lerp($Path.curve.get_point_position(0), $Path.curve.get_point_position(1), t)
@@ -402,14 +396,6 @@ func create_ring():
 	})
 
 
-func _on_VideoPlayer1_finished():
-	ui.get_node("VideoPanel/VideoPlayer1").play()
-
-
-func _on_VideoPlayer2_finished():
-	ui.get_node("VideoPanel/VideoPlayer2").play()
-
-
 func toggle_pixels():
 	if pixels:
 		pixels = false
@@ -468,13 +454,6 @@ func toggle_pixels():
 		ui.get_node("Gamepad").rect_scale = Vector2(0.33, 0.33)
 		ui.get_node("Gamepad").margin_left = 8
 		ui.get_node("Gamepad").margin_top = -68
-
-
-func _on_videoswitchtimer_timeout():
-	if ui.get_node("VideoPanel/VideoPlayer2").visible:
-		ui.get_node("VideoPanel/VideoPlayer2").hide()
-	else:
-		ui.get_node("VideoPanel/VideoPlayer2").show()
 
 
 func _on_sweep_body_entered(body):
